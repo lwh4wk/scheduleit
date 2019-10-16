@@ -1,0 +1,485 @@
+
+<!DOCTYPE>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Classes</title>
+
+    <meta name="author" content="Logan Hylton, Lavonté Brown">
+    <meta name='description' content="cs4640 project">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">  <!-- required to handle IE -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="styles/mystyle.css" />
+
+    <!-- required scripts for IE -->
+    <!--[if lt IE 9]-->
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <script src="bootstrap/js/bootstrap.bundle.js"></script>
+    <script src="bootstrap/js/bootstrap.js"></script>
+
+    <script type="text/javascript">
+        var xhr = new XMLHttpRequest();
+
+        xhr.onreadystatechange = function() {
+            if (xhr.status == 200) {
+                if (xhr.responseText == "false") {
+                    window.location.href = "home.html";
+                }
+            }
+        }
+
+        xhr.open('POST', 'checkUser.php', true);
+
+        xhr.send();
+
+    </script>
+
+    <script type="text/javascript">
+        function setFocus() {
+            document.getElementById("name").focus();
+            loadClasses();
+        }
+    </script>
+
+    <script type="text/javascript">
+        function checkExisting(check) {
+            if (check) {
+                var table = document.getElementById("classesTable");
+                var name = document.getElementById("name").value;
+                for (let i = 0; i < table.rows.length; i++) {
+                    console.log(table.rows[i].cells[0].innerText);
+                    if (table.rows[i].cells[0].innerText == name) {
+                        document.getElementById("existingError").hidden = false;
+                        return false;
+                    }
+                } return true;
+            } else {
+                if (document.getElementById("name").value != "") {
+                    document.getElementById("existingError").hidden = true;
+                }
+            }
+        }
+
+        function addClass() {
+            if (validateName() && validateDays() && validateTime() && checkExisting(true)) {
+                console.log("test");
+                var className = document.getElementById("name").value;
+
+                var days = "";
+
+                if (document.getElementById("Monday").checked) {
+                    days += "Monday,";
+                    console.log("test");
+                }
+                if (document.getElementById("Tuesday").checked) {
+                    days += "Tuesday,";
+                }
+                if (document.getElementById("Wednesday").checked) {
+                    days += "Wednesday,";
+                }
+                if (document.getElementById("Thursday").checked) {
+                    days += "Thursday,";
+                }
+                if (document.getElementById("Friday").checked) {
+                    days += "Friday,";
+                }
+
+                days = days.substring(0, days.length - 1);
+
+                var startTime = document.getElementById("timeStart").value;
+                var endTime = document.getElementById("timeEnd").value;
+
+                var time = startTime + "-" + endTime;
+
+                var xhrAddClass = new XMLHttpRequest();
+
+                xhrAddClass.onload = function() {
+                    if (xhrAddClass.status == 200) {
+                        document.getElementById("name").value = "";
+                        document.getElementById("Monday").checked = false;
+                        document.getElementById("Tuesday").checked = false;
+                        document.getElementById("Wednesday").checked = false;
+                        document.getElementById("Thursday").checked = false;
+                        document.getElementById("Friday").checked = false;
+                        document.getElementById("timeStart").value = "";
+                        document.getElementById("timeEnd").value = "";
+                        document.getElementById("existingError").hidden = true;
+                        loadClasses();
+                    }
+
+                }
+
+                xhrAddClass.open('POST', 'addClass.php', true);
+
+                xhrAddClass.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+                xhrAddClass.send("className=" + className + "&days=" + days + "&time=" + time);
+            }
+        }
+
+        function loadClasses() {
+            var xhr = new XMLHttpRequest();
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    clearTable();
+                    var response = xhr.responseText;
+                    response = response.substring(0, response.length - 1);
+                    var items = response.split("^");
+                    for (let i = 0; i < items.length - 1; i += 3) {
+                        var table = document.getElementById("classesTable");
+                        var newRow = table.insertRow(table.rows.length);
+                        newRow.insertCell(0).innerHTML = items[i];
+                        var days = items[i+1].split(",");
+                        var newDays = "";
+                        for (let j = 0; j < days.length; j++) {
+                            if (j == days.length-1) {
+                                newDays += days[j];
+                            } else {
+                                newDays += days[j] + ", ";
+                            }
+                        }
+                        newRow.insertCell(1).innerHTML = newDays;
+                        newRow.insertCell(2).innerHTML = items[i+2];
+                        newRow.insertCell(3).innerHTML = "<input type=\"button\" " +
+                            "class=\"btn btn-primary\" value=\"View Assignments\" id=\"" + items[i] + "\" " +
+                            "onclick=\"viewAssignments(this.id)\" />" +
+                            "<input type=\"button\" class=\"btn btn-danger\" id=\"button" +
+                            document.getElementById("classesTable").rows.length +
+                            "\" value=\"Remove\" onclick=\"deleteClass(this.id)\" />";
+                    }
+                    document.getElementById("calendar").innerHTML = "<iframe width=\"100%\" height=\"100%\" frameborder=\"0\" src=\"calendar/index.html\" />";
+                    checkExisting(true);
+                }
+            }
+            xhr.open('GET', 'loadClasses.php', true);
+            xhr.send();
+        }
+
+        function deleteClass(index) {
+            var id = parseInt(index.substring(6));
+            if (confirm("Are you sure your wish to delete this class? This will delete all assignments for this class.") == true) {
+
+                var className = document.getElementById("classesTable").rows[id-1].cells[0].innerText;
+
+                var xhr = new XMLHttpRequest();
+
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        loadClasses();
+                    }
+                }
+
+                xhr.open('POST', 'removeClass.php', true);
+
+                xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+                xhr.send("className=" + className);
+            }
+
+        }
+
+        function clearTable() {
+            var j = document.getElementById("classesTable").getElementsByTagName("tr").length - 1
+            for (let i = j; i > 0; i--) {
+                document.getElementById("classesTable").deleteRow(i);
+            }
+        }
+
+        function viewAssignments(clickedId) {
+            var xhrModal = new XMLHttpRequest();
+
+            xhrModal.onload = function() {
+                if (xhrModal.status === 200) {
+                    document.getElementById("modal").innerHTML =
+                        "<button id=\"showAssignments\" type=\"button\" class=\"btn btn-primary\" data-toggle=\"modal\" data-target=\"#exampleModal\" hidden>\n" +
+                        "   Launch demo modal\n" +
+                        "</button>" +
+                        "<div class=\"modal fade\" id=\"exampleModal\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"exampleModalLabel\" aria-hidden=\"true\">\n" +
+                        "   <div class=\"modal-dialog\" role=\"document\">\n" +
+                        "      <div class=\"modal-content\">\n" +
+                        "         <div class=\"modal-header\">\n" +
+                        "            <h5 class=\"modal-title\" id=\"exampleModalLabel\">Assignments for&nbsp" + clickedId + "</h5>\n" +
+                        "            <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\">\n" +
+                        "               <span aria-hidden=\"true\">&times;</span>\n" +
+                        "            </button>\n" +
+                        "         </div>\n" +
+                        "         <div class=\"modal-body\">\n" +
+                        "            <table class=\"table table-hover\" id=\"assignmentsTableModal\">\n" +
+                        "                <thead>\n" +
+                        "                <tr>\n" +
+                        "                    <th>Class</th>\n" +
+                        "                    <th>Description</th>\n" +
+                        "                    <th>Due Date</th>\n" +
+                        "                </tr>\n" +
+                        "                </thead>\n" +
+                        "\n" +
+                        "\n" +
+                        "            </table>\n" +
+                        "         </div>\n" +
+                        "         <div class=\"modal-footer\">\n" +
+                        "            <button type=\"button\" class=\"btn btn-secondary\" data-dismiss=\"modal\">Close</button>\n" +
+                        "         </div>\n" +
+                        "      </div>\n" +
+                        "   </div>\n" +
+                        "</div>";
+
+                    if (xhrModal.responseText != "none") {
+                        var response = xhrModal.responseText.substring(0, xhrModal.responseText.length - 1);
+                        var items = response.split(",");
+
+                        var table = document.getElementById("assignmentsTableModal");
+                        for (let i = 0; i < items.length; i += 3) {
+                            var newRow = table.insertRow(table.rows.length);
+
+                            newRow.insertCell(0).innerText = items[i];
+                            newRow.insertCell(1).innerText = items[i + 1];
+                            newRow.insertCell(2).innerText = items[i + 2];
+
+                        }
+                    }
+
+                    document.getElementById("showAssignments").click();
+                }
+            }
+
+            xhrModal.open('POST', 'loadAssignmentModal.php', true);
+            xhrModal.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+            xhrModal.send("className=" + clickedId);
+        }
+
+        function validateName() {
+            if (document.getElementById("name").value != "") {
+                document.getElementById("nameError").hidden = true;
+                return true;
+            } else {
+                document.getElementById("nameError").hidden = false;
+                return false;
+            }
+        }
+
+        function validateDays() {
+            if (document.getElementById("Monday").checked) {
+                document.getElementById("daysError").hidden = true;
+                return true;
+            } if (document.getElementById("Tuesday").checked) {
+                document.getElementById("daysError").hidden = true;
+                return true;
+            } if (document.getElementById("Wednesday").checked) {
+                document.getElementById("daysError").hidden = true;
+                return true;
+            } if (document.getElementById("Thursday").checked) {
+                document.getElementById("daysError").hidden = true;
+                return true;
+            } if (document.getElementById("Friday").checked) {
+                document.getElementById("daysError").hidden = true;
+                return true;
+            }
+            document.getElementById("daysError").hidden = false;
+            return false;
+        }
+
+        var timeCheck = false;
+
+        function validateTime() {
+            timeCheck = true;
+            if (document.getElementById("timeStart").value == "" || document.getElementById("timeEnd").value.length < 4 || document.getElementById("timeEnd").value.length > 5) {
+                document.getElementById("timeError").hidden = false;
+                return false;
+            } if (document.getElementById("timeEnd").value == "" || document.getElementById("timeEnd").value.length < 4 || document.getElementById("timeEnd").value.length > 5) {
+                document.getElementById("timeError").hidden = false;
+                return false;
+            }
+            document.getElementById("timeError").hidden = true;
+            return true;
+        }
+
+
+
+    </script>
+
+
+    <!--
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>-
+    <link rel="stylesheet" href="css/bootstrap-multiselect/bootstrap-multiselect.css" type="text/css">
+    <script type="text/javascript" src="js/bootstrap-multiselect/bootstrap-multiselect.js"></script>-->
+</head>
+
+<div id="modal"></div>
+
+<body onload="setFocus()" style="background-color: #ffbf80;">
+<header>
+    <nav class="navbar navbar-expand-md bg-dark navbar-dark">
+        <a class="navbar-brand" href="calendar.html">Schedule It!</a>
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="collapsibleNavbar">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="calendar.html">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="#">Manage Classes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="assignments.html">Manage Assignments</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="account.html">Manage Account</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="signout.php">Sign Out</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</header>
+
+<div class="jumbotron rounded-0" style="padding: 2%; background: #007bff; color: white;">
+    <div class="container">
+        <h1 align="center">Create and Manage Classes</h1>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row" style="padding-bottom: 2%;">
+        <div class="col-lg-3 col-md-4 col-sm-12 rounded" style="padding-bottom: 15px;">
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <h1>Add a Class</h1>
+                </li>
+                <li class="list-group-item">
+                    <div class="form-group">
+                        <label for="name">Class Name</label>
+                        <input type="text" id="name" class="form-control" oninput="validateName(); checkExisting(false)" />
+                    </div>
+                    <div class="form-group" id="nameError" hidden>
+                        <span><div class="alert alert-danger" role="alert">You must enter a name for the class.</div></span>
+                    </div>
+                    <div class="form-group" id="existingError" hidden>
+                        <span><div class="alert alert-danger" role="alert">This class already exists.</div></span>
+                    </div>
+
+                    <hr/>
+                    <div class="row">
+                        <div class="col-md-6 col-lg-6 col-sm-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="Monday" oninput="validateDays()">
+                                <label class="form-check-label" for="Monday">Monday</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="Tuesday" oninput="validateDays()">
+                                <label class="form-check-label" for="Tuesday">Tuesday</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="Wednesday" oninput="validateDays()">
+                                <label class="form-check-label" for="Wednesday">Wednesday</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-6 col-sm-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="Thursday" oninput="validateDays()">
+                                <label class="form-check-label" for="Thursday">Thursday</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="Friday" oninput="validateDays()">
+                                <label class="form-check-label" for="Friday">Friday</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" id="daysError" hidden>
+                        <span><div class="alert alert-danger" role="alert">You must select at least one day.</div></span>
+                    </div>
+                    <hr/>
+
+                    <div class="row">
+                        <div class="col-md-6 col-lg-6 col-sm-12">
+                            <div class="form-group">
+                                <label for="timeStart">Start Time: </label>
+                                <input type="text" id="timeStart" class="form-control" min="1:00" max="12:59" oninput="validateTime1()" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-6 col-sm-12">
+                            <div class="form-group">
+                                <label for="timeEnd">End Time: </label>
+                                <input type="text" id="timeEnd" class="form-control" min="1:00" max="12:59" oninput="validateTime1()" onblur="validateTime()" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" id="timeError" hidden>
+                        <span><div class="alert alert-danger" role="alert">Both start time and end time must be entered in the format: HH:MM!</div></span>
+                    </div>
+                    <div class="form-group" >
+                        <input type="button" class="btn btn-primary" id="add" onclick="addClass()" value="Submit"/>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <style>
+            tr:hover {
+                background-color: lightgrey;
+            }
+            tr.thead:hover {
+                background-color: white;
+            }
+        </style>
+
+        <div class="col-lg-9 col-md-8 col-sm-12">
+            <table class="table table-hover rounded" id="classesTable" style="background: white;">
+                <thead>
+                <tr class="text-left thead">
+                    <th scope="col">Class Name</th>
+                    <th scope="col">Days of the Week</th>
+                    <th scope="col">Time</th>
+                    <th scope="col">View Assignments / Remove Class</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+<br/>
+
+<script>
+    document.getElementById("timeStart").oninput = function() {
+        if (timeCheck) {
+            validateTime();
+        }
+    }
+
+    document.getElementById("timeEnd").oninput = function() {
+        if (timeCheck) {
+            validateTime();
+        }
+    }
+</script>
+
+
+<div class="text-center" id="calendar" style="height: 1450px; background: white;">
+    <iframe style="padding-top: 0px;" width="100%" height="100%" frameborder="0" src="calendar/index.html" scrolling="yes"></iframe>
+</div>
+
+
+
+
+</body>
+
+
+
+
+
+</html>

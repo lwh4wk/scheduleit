@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>document.getElementsByTagName("html")[0].className += " js";</script>
+    <link rel="stylesheet" href="style.css">
+    <title>Schedule Template | CodyHouse</title>
+</head>
+<body>
+
+<div class="cd-schedule cd-schedule--loading margin-top-lg margin-bottom-lg js-cd-schedule">
+    <div class="cd-schedule__timeline">
+        <ul>
+            <li><span>08:00</span></li>
+            <li><span>08:30</span></li>
+            <li><span>09:00</span></li>
+            <li><span>09:30</span></li>
+            <li><span>10:00</span></li>
+            <li><span>10:30</span></li>
+            <li><span>11:00</span></li>
+            <li><span>11:30</span></li>
+            <li><span>12:00</span></li>
+            <li><span>12:30</span></li>
+            <li><span>13:00</span></li>
+            <li><span>13:30</span></li>
+            <li><span>14:00</span></li>
+            <li><span>14:30</span></li>
+            <li><span>15:00</span></li>
+            <li><span>15:30</span></li>
+            <li><span>16:00</span></li>
+            <li><span>16:30</span></li>
+            <li><span>17:00</span></li>
+            <li><span>17:30</span></li>
+            <li><span>18:00</span></li>
+            <li><span>18:30</span></li>
+            <li><span>19:00</span></li>
+            <li><span>19:30</span></li>
+            <li><span>20:00</span></li>
+        </ul>
+    </div>
+
+    <div class="cd-schedule__events">
+        <ul>
+            <li class="cd-schedule__group" id="monday">
+                <div class="cd-schedule__top-info"><span>Monday</span></div>
+
+                <ul id="mondayList">
+
+                </ul>
+            </li>
+
+            <li class="cd-schedule__group" id="tuesday">
+                <div class="cd-schedule__top-info"><span>Tuesday</span></div>
+
+                <ul id="tuesdayList">
+
+                </ul>
+            </li>
+
+            <li class="cd-schedule__group" id="wednesday">
+                <div class="cd-schedule__top-info"><span>Wednesday</span></div>
+
+                <ul id="wednesdayList">
+
+                </ul>
+            </li>
+
+            <li class="cd-schedule__group" id="thursday">
+                <div class="cd-schedule__top-info"><span>Thursday</span></div>
+
+                <ul id="thursdayList">
+
+                </ul>
+            </li>
+
+            <li class="cd-schedule__group" id="friday">
+                <div class="cd-schedule__top-info"><span>Friday</span></div>
+
+                <ul id="fridayList">
+
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="cd-schedule-modal">
+        <header class="cd-schedule-modal__header">
+            <div class="cd-schedule-modal__content">
+                <span class="cd-schedule-modal__date"></span>
+                <h3 class="cd-schedule-modal__name"></h3>
+            </div>
+
+            <div class="cd-schedule-modal__header-bg"></div>
+        </header>
+
+        <div class="cd-schedule-modal__body">
+            <div class="cd-schedule-modal__event-info"></div>
+            <div class="cd-schedule-modal__body-bg"></div>
+        </div>
+
+        <a href="#0" class="cd-schedule-modal__close text-replace">Close</a>
+    </div>
+
+    <div class="cd-schedule__cover-layer"></div>
+</div> <!-- .cd-schedule -->
+
+<script src="assets/js/util.js"></script>
+<!--<script src="assets/js/main.js"></script>-->
+
+<script type="text/javascript">
+    var xhrTuesday = new XMLHttpRequest();
+
+    xhrTuesday.onload = function() {
+        if (xhrTuesday.status === 200) {
+            var responseBefore = xhrTuesday.responseText;
+            responseBefore = responseBefore.substring(0, responseBefore.length - 1);
+            var response = responseBefore.split("^");
+            var eventNumber = 1;
+            for (let i = 0; i < response.length; i += 3) {
+                var days = response[i+1].split(",");
+                var times = response[i+2].split("-");
+                if (parseInt(times[0].split(":")[0]) < 8) {
+                    times[0] = (parseInt(times[0].split(":")[0]) + 12) + ":" + times[0].split(":")[1];
+                } if (parseInt(times[1].split(":")[0]) < 8) {
+                    times[1] = (parseInt(times[1].split(":")[0]) + 12) + ":" + times[1].split(":")[1];
+                }
+                if (days.includes("Monday")) {
+                    document.getElementById("mondayList").innerHTML +=
+                        "<li class=\"cd-schedule__event\">" +
+                        "   <a data-start=\"" + times[0] + "\" data-end=\"" + times[1] + "\" data-event=\"event-" + eventNumber + "\">" +
+                        "       <em class=\"cd-schedule__name\">" + response[i] + "</em>" +
+                        "   </a>" +
+                        "</li>";
+                } if (days.includes("Tuesday")) {
+                    document.getElementById("tuesdayList").innerHTML +=
+                        "<li class=\"cd-schedule__event\">" +
+                        "   <a data-start=\"" + times[0] + "\" data-end=\"" + times[1] + "\" data-event=\"event-" + eventNumber + "\">" +
+                        "       <em class=\"cd-schedule__name\">" + response[i] + "</em>" +
+                        "   </a>" +
+                        "</li>";
+                } if (days.includes("Wednesday")) {
+                    document.getElementById("wednesdayList").innerHTML +=
+                        "<li class=\"cd-schedule__event\">" +
+                        "   <a data-start=\"" + times[0] + "\" data-end=\"" + times[1] + "\" data-event=\"event-" + eventNumber + "\">" +
+                        "       <em class=\"cd-schedule__name\">" + response[i] + "</em>" +
+                        "   </a>" +
+                        "</li>";
+                } if (days.includes("Thursday")) {
+                    document.getElementById("thursdayList").innerHTML +=
+                        "<li class=\"cd-schedule__event\">" +
+                        "   <a data-start=\"" + times[0] + "\" data-end=\"" + times[1] + "\" data-event=\"event-" + eventNumber + "\">" +
+                        "       <em class=\"cd-schedule__name\">" + response[i] + "</em>" +
+                        "   </a>" +
+                        "</li>";
+                } if (days.includes("Friday")) {
+                    document.getElementById("fridayList").innerHTML +=
+                        "<li class=\"cd-schedule__event\">" +
+                        "   <a data-start=\"" + times[0] + "\" data-end=\"" + times[1] + "\" data-event=\"event-" + eventNumber + "\">" +
+                        "       <em class=\"cd-schedule__name\">" + response[i] + "</em>" +
+                        "   </a>" +
+                        "</li>";
+                }
+                if (eventNumber == 4) {
+                    eventNumber = 1;
+                } else {
+                    eventNumber++;
+                }
+            }
+            (function() {
+                // Schedule Template - by CodyHouse.co
+                function ScheduleTemplate( element ) {
+                    this.element = element;
+                    this.timelineItems = this.element.getElementsByClassName('cd-schedule__timeline')[0].getElementsByTagName('li');
+                    this.timelineStart = getScheduleTimestamp(this.timelineItems[0].textContent);
+                    this.timelineUnitDuration = getScheduleTimestamp(this.timelineItems[1].textContent) - getScheduleTimestamp(this.timelineItems[0].textContent);
+
+                    this.topInfoElement = this.element.getElementsByClassName('cd-schedule__top-info')[0];
+                    this.singleEvents = this.element.getElementsByClassName('cd-schedule__event');
+
+                    this.scheduleReset();
+                };
+
+                ScheduleTemplate.prototype.scheduleReset = function() {
+                    // according to the mq value, init the style of the template
+                    var mq = this.mq(),
+                        loaded = Util.hasClass(this.element, 'js-schedule-loaded');
+                    if( mq == 'desktop' && !loaded ) {
+                        Util.addClass(this.element, 'js-schedule-loaded');
+                        this.placeEvents();
+                    } else {
+                        Util.removeClass(this.element, 'cd-schedule--loading');
+                    }
+                };
+
+                ScheduleTemplate.prototype.placeEvents = function() {
+                    // on big devices - place events in the template according to their time/day
+                    var self = this,
+                        slotHeight = this.topInfoElement.offsetHeight;
+                    for(var i = 0; i < this.singleEvents.length; i++) {
+                        var anchor = this.singleEvents[i].getElementsByTagName('a')[0];
+                        var start = getScheduleTimestamp(anchor.getAttribute('data-start')),
+                            duration = getScheduleTimestamp(anchor.getAttribute('data-end')) - start;
+
+                        var eventTop = slotHeight*(start - self.timelineStart)/self.timelineUnitDuration,
+                            eventHeight = slotHeight*duration/self.timelineUnitDuration;
+
+                        this.singleEvents[i].setAttribute('style', 'top: '+(eventTop-1)+'px; height: '+(eventHeight +1)+'px');
+                    }
+
+                    Util.removeClass(this.element, 'cd-schedule--loading');
+                };
+
+                ScheduleTemplate.prototype.mq = function(){
+                    //get MQ value ('desktop' or 'mobile')
+                    var self = this;
+                    return window.getComputedStyle(this.element, '::before').getPropertyValue('content').replace(/'|"/g, "");
+                };
+
+                function getScheduleTimestamp(time) {
+                    //accepts hh:mm format - convert hh:mm to timestamp
+                    time = time.replace(/ /g,'');
+                    var timeArray = time.split(':');
+                    var timeStamp = parseInt(timeArray[0])*60 + parseInt(timeArray[1]);
+                    return timeStamp;
+                };
+
+                var scheduleTemplate = document.getElementsByClassName('js-cd-schedule'),
+                    scheduleTemplateArray = [];
+                if( scheduleTemplate.length > 0 ) { // init ScheduleTemplate objects
+                    for( var i = 0; i < scheduleTemplate.length; i++) {
+                        (function(i){
+                            scheduleTemplateArray.push(new ScheduleTemplate(scheduleTemplate[i]));
+                        })(i);
+                    }
+                }
+            }());
+        }
+    }
+    xhrTuesday.open('GET', '../loadClassesDashboard.php', true);
+    xhrTuesday.send();
+</script>
+</body>
+</html>
